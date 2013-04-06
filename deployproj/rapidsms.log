@@ -1,0 +1,47 @@
+2013-04-06 17:36:50,580 rapidsms.contrib.handlers.app INFO     Registered: LanguageHandler, RegisterHandler, EchoHandler, PingHandler
+2013-04-06 17:36:50,582 rapidsms.router.blocking.router INFO     Incoming (134245 via message_tester): echo foo
+
+2013-04-06 17:36:50,582 rapidsms.router.blocking.router DEBUG    In filter phase
+2013-04-06 17:36:50,582 rapidsms.router.blocking.router DEBUG    In <app: handlers> app
+2013-04-06 17:36:50,582 rapidsms.router.blocking.router DEBUG    In <app: messagelog> app
+2013-04-06 17:36:50,582 rapidsms.router.blocking.router DEBUG    In <app: default> app
+2013-04-06 17:36:50,582 rapidsms.router.blocking.router DEBUG    In parse phase
+2013-04-06 17:36:50,582 rapidsms.router.blocking.router DEBUG    In <app: handlers> app
+2013-04-06 17:36:50,582 rapidsms.router.blocking.router DEBUG    In <app: messagelog> app
+2013-04-06 17:36:50,617 rapidsms.router.blocking.router DEBUG    In <app: default> app
+2013-04-06 17:36:50,618 rapidsms.router.blocking.router DEBUG    In handle phase
+2013-04-06 17:36:50,618 rapidsms.router.blocking.router DEBUG    In <app: handlers> app
+2013-04-06 17:36:50,619 rapidsms.contrib.handlers.app INFO     Incoming message handled by EchoHandler
+2013-04-06 17:36:50,619 rapidsms.router.blocking.router DEBUG    Short-circuited
+2013-04-06 17:36:50,619 rapidsms.router.blocking.router DEBUG    In default phase
+2013-04-06 17:36:50,619 rapidsms.router.blocking.router DEBUG    Skipping phase
+2013-04-06 17:36:50,620 rapidsms.contrib.handlers.app INFO     Registered: LanguageHandler, RegisterHandler, EchoHandler, PingHandler
+2013-04-06 17:36:50,621 rapidsms.router.blocking.router INFO     Outgoing: foo
+2013-04-06 17:36:50,621 rapidsms.router.blocking.router DEBUG    Out outgoing phase
+2013-04-06 17:36:50,621 rapidsms.router.blocking.router DEBUG    Out <app: default> app
+2013-04-06 17:36:50,621 rapidsms.router.blocking.router DEBUG    Out <app: messagelog> app
+2013-04-06 17:36:50,642 rapidsms.router.blocking.router DEBUG    Out <app: handlers> app
+2013-04-06 17:36:50,642 rapidsms.backends.database.outgoing INFO     Storing message: foo
+2013-04-06 17:37:03,701 rapidsms.contrib.handlers.app INFO     Registered: LanguageHandler, RegisterHandler, EchoHandler, PingHandler
+2013-04-06 17:37:03,701 rapidsms.router.blocking.router INFO     Incoming (134245 via message_tester): ping
+2013-04-06 17:37:03,701 rapidsms.router.blocking.router DEBUG    In filter phase
+2013-04-06 17:37:03,701 rapidsms.router.blocking.router DEBUG    In <app: handlers> app
+2013-04-06 17:37:03,701 rapidsms.router.blocking.router DEBUG    In <app: messagelog> app
+2013-04-06 17:37:03,701 rapidsms.router.blocking.router DEBUG    In <app: default> app
+2013-04-06 17:37:03,701 rapidsms.router.blocking.router DEBUG    In parse phase
+2013-04-06 17:37:03,702 rapidsms.router.blocking.router DEBUG    In <app: handlers> app
+2013-04-06 17:37:03,702 rapidsms.router.blocking.router DEBUG    In <app: messagelog> app
+2013-04-06 17:37:03,784 rapidsms.router.blocking.router DEBUG    In <app: default> app
+2013-04-06 17:37:03,785 rapidsms.router.blocking.router DEBUG    In handle phase
+2013-04-06 17:37:03,785 rapidsms.router.blocking.router DEBUG    In <app: handlers> app
+2013-04-06 17:37:03,785 rapidsms.contrib.handlers.app INFO     Incoming message handled by PingHandler
+2013-04-06 17:37:03,785 rapidsms.router.blocking.router DEBUG    Short-circuited
+2013-04-06 17:37:03,785 rapidsms.router.blocking.router DEBUG    In default phase
+2013-04-06 17:37:03,785 rapidsms.router.blocking.router DEBUG    Skipping phase
+2013-04-06 17:37:03,788 rapidsms.contrib.handlers.app INFO     Registered: LanguageHandler, RegisterHandler, EchoHandler, PingHandler
+2013-04-06 17:37:03,788 rapidsms.router.blocking.router INFO     Outgoing: <OutgoingMessage: pong>
+2013-04-06 17:37:03,788 rapidsms.router.blocking.router DEBUG    Out outgoing phase
+2013-04-06 17:37:03,788 rapidsms.router.blocking.router DEBUG    Out <app: default> app
+2013-04-06 17:37:03,789 rapidsms.router.blocking.router DEBUG    Out <app: messagelog> app
+2013-04-06 17:37:04,019 rapidsms.router.blocking.router DEBUG    Out <app: handlers> app
+2013-04-06 17:37:04,019 rapidsms.backends.database.outgoing INFO     Storing message: pong
