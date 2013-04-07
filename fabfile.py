@@ -16,7 +16,7 @@ PROJECT_ROOT = os.path.dirname(__file__)
 CONF_ROOT = os.path.join(PROJECT_ROOT, 'conf')
 SERVER_ROLES = ['app', 'lb', 'db']
 env.project = 'deployproj'
-env.project_user = 'deployproj'
+env.project_user = 'rapidsms'
 env.repo = u'' # FIXME: Add repo URL
 env.shell = '/bin/bash -c'
 env.disable_known_hosts = True
@@ -32,7 +32,7 @@ env.ARGYLE_TEMPLATE_DIRS = (
 @task
 def vagrant():
     env.environment = 'staging'
-    env.hosts = ['33.33.33.10', ]
+    env.hosts = ['192.168.50.4', ]
     env.branch = 'master'
     env.server_name = 'dev.example.com'
     setup_path()
@@ -69,84 +69,16 @@ def setup_path():
 
 
 @task
-def create_users():
-    """Create project user and developer users."""
-    ssh_dir = u"/home/%s/.ssh" % env.project_user
-    system.create_user(env.project_user, groups=['www-data', 'login', ])
-    sudo('mkdir -p %s' % ssh_dir)
-    user_dir = os.path.join(CONF_ROOT, "users")
-    for username in os.listdir(user_dir):
-        key_file = os.path.normpath(os.path.join(user_dir, username))
-        system.create_user(username, groups=['dev', 'login', ], key_file=key_file)
-        with open(key_file, 'rt') as f:
-            ssh_key = f.read()
-        # Add ssh key for project user
-        files.append('%s/authorized_keys' % ssh_dir, ssh_key, use_sudo=True)
-    files.append(u'/etc/sudoers', r'%dev ALL=(ALL) NOPASSWD:ALL', use_sudo=True)
-    sudo('chown -R %s:%s %s' % (env.project_user, env.project_user, ssh_dir))
-
-
-@task
-def configure_ssh():
-    """
-    Change sshd_config defaults:
-    Change default port
-    Disable root login
-    Disable password login
-    Restrict to only login group
-    """
-    ssh_config = u'/etc/ssh/sshd_config'
-    files.sed(ssh_config, u"Port 22$", u"Port %s" % env.ssh_port, use_sudo=True)
-    files.sed(ssh_config, u"PermitRootLogin yes", u"PermitRootLogin no", use_sudo=True)
-    files.append(ssh_config, u"AllowGroups login", use_sudo=True)
-    files.append(ssh_config, u"PasswordAuthentication no", use_sudo=True)
-    service_command(u'ssh', u'reload')
-
-
-@task
-def install_packages(*roles):
-    """Install packages for the given roles."""
-    config_file = os.path.join(CONF_ROOT, u'packages.conf')
-    config = ConfigParser.SafeConfigParser()
-    config.read(config_file)
-    for role in roles:
-        if config.has_section(role):
-            # Get ppas
-            if config.has_option(role, 'ppas'):
-                for ppa in config.get(role, 'ppas').split(' '):
-                    system.add_ppa(ppa, update=False)
-            # Get sources
-            if config.has_option(role, 'sources'):
-                for section in config.get(role, 'sources').split(' '):
-                    source = config.get(section, 'source')
-                    key = config.get(section, 'key')
-                    system.add_apt_source(source=source, key=key, update=False)
-            sudo(u"apt-get update")
-            sudo(u"apt-get install -y %s" % config.get(role, 'packages'))
-            sudo(u"apt-get upgrade -y")
-
-
-@task
 def setup_server(*roles):
     """Install packages and add configurations for server given roles."""
     require('environment')
-    # Set server locale    
+    # Set server locale
     sudo('/usr/sbin/update-locale LANG=en_US.UTF-8')
     roles = list(roles)
     if roles == ['all', ]:
         roles = SERVER_ROLES
     if 'base' not in roles:
         roles.insert(0, 'base')
-    install_packages(*roles)
-    if 'db' in roles:
-        if console.confirm(u"Do you want to reset the Postgres cluster?.", default=False):
-            # Ensure the cluster is using UTF-8
-            pg_version = postgres.detect_version()
-            sudo('pg_dropcluster --stop %s main' % pg_version, user='postgres')
-            sudo('pg_createcluster --start -e UTF-8 --locale en_US.UTF-8 %s main' % pg_version,
-                 user='postgres')
-        postgres.create_db_user(username=env.project_user)
-        postgres.create_db(name=env.db, owner=env.project_user)
     if 'app' in roles:
         # Create project directories and install Python requirements
         project_run('mkdir -p %(root)s' % env)
@@ -170,11 +102,10 @@ def setup_server(*roles):
             test_for_virtualenv = run('which virtualenv')
         if not test_for_virtualenv:
             sudo("pip install -U virtualenv")
-        project_run('virtualenv -p python2.6 --clear --distribute %s' % env.virtualenv_root)
+        project_run('virtualenv -p python2.7 --clear --distribute %s' % env.virtualenv_root)
         path_file = os.path.join(env.virtualenv_root, 'lib', 'python2.6', 'site-packages', 'project.pth')
         files.append(path_file, env.code_root, use_sudo=True)
         sudo('chown %s:%s %s' % (env.project_user, env.project_user, path_file))
-        sudo('npm install less -g')
         update_requirements()
         upload_supervisor_app_conf(app_name=u'gunicorn')
         upload_supervisor_app_conf(app_name=u'group')
