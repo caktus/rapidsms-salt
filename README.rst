@@ -104,9 +104,40 @@ Vagrant Testing
 ------------------------
 
 You can test the provisioning/deployment using `Vagrant <http://vagrantup.com/>`_.
-Using the Vagrantfile you can start up the VM. This requires the ``lucid32`` box::
+
+After installing Vagrant, install `Salty Vagrant <https://github.com/saltstack/salty-vagrant>`_:
+
+    vagrant plugin install vagrant-salt
+
+Edit `salt/roots/pillar/users.sls` and add your user and ssh key, following
+the example. Later you'll be able to ssh to the vagrant system using that
+userid and key.
+
+Using the Vagrantfile you can start up the VM. This requires the ``precise32`` box::
 
     vagrant up
+
+You can find out how ssh is set up by running:
+
+    vagrant ssh_config
+
+Example output::
+
+    $ vagrant ssh-config
+    Host default
+      HostName 127.0.0.1
+      User vagrant
+      Port 2222
+
+The `User vagrant` part is misleading as that doesn't work yet, but you
+should be able to:
+
+    ssh -p 2222 yourusername@127.0.0.1
+
+where `yourusername` is the user you added to users.sls, and 2222 and
+127.0.0.1 are changed to whatever vagrant reported.
+
+*Rest of this is probably obsolete*
 
 With the VM up and running, you can create the necessary users.
 Put the developers' keys in ``conf/users`` as before, then
