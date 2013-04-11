@@ -137,6 +137,19 @@ should be able to:
 where `yourusername` is the user you added to users.sls, and 2222 and
 127.0.0.1 are changed to whatever vagrant reported.
 
+
+If you change the salt files and want to update the virtual machine,
+you can::
+
+    ssh -p 2222 localhost sudo salt-call --local state.highstate [-l debug]
+
+
+You can provision a new server with the
+``setup_server`` fab command. It takes a list of roles for this server
+('app', 'db', 'lb') or you can say 'all'::
+
+        fab staging setup_server:all
+
 *Rest of this is probably obsolete*
 
 With the VM up and running, you can create the necessary users.

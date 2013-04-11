@@ -20,7 +20,7 @@ env.project_user = 'rapidsms'
 env.repo = u'git@github.com:caktus/rapidsms-salt.git'
 env.shell = '/bin/bash -c'
 env.disable_known_hosts = True
-env.ssh_port = 2222
+env.port = 2222
 env.forward_agent = True
 
 # Additional settings for argyle
@@ -32,7 +32,8 @@ env.ARGYLE_TEMPLATE_DIRS = (
 @task
 def vagrant():
     env.environment = 'staging'
-    env.hosts = ['192.168.50.4', ]
+    env.hosts = ['127.0.0.1']
+    env.port = 2222
     env.branch = 'master'
     env.server_name = 'dev.example.com'
     setup_path()
@@ -68,12 +69,21 @@ def setup_path():
     env.settings = '%(project)s.settings.%(environment)s' % env
 
 
+def know_github():
+    """Make sure github.com is in the server's ssh known_hosts file"""
+    KEYLINE = "|1|t0+3ewjYdZOrDwi/LvvAw/UiGEs=|8TzF6lRm2rdxaXDcByTBWbUIbic= ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
+    files.append("/etc/ssh/ssh_known_hosts", KEYLINE, use_sudo=True)
+
+
 @task
 def setup_server(*roles):
     """Install packages and add configurations for server given roles."""
     require('environment')
+    run('hostname;whoami')
     # Set server locale
     sudo('/usr/sbin/update-locale LANG=en_US.UTF-8')
+    # Teach server github's ssh server key
+    know_github()
     roles = list(roles)
     if roles == ['all', ]:
         roles = SERVER_ROLES
@@ -88,9 +98,8 @@ def setup_server(*roles):
         # forwarding, because it doesn't work with sudo. read:
         # http://serverfault.com/questions/107187/sudo-su-username-while-keeping-ssh-key-forwarding
         with settings(user=env.project_user):
-            # TODO: Add known hosts prior to clone.
-            # i.e. ssh -o StrictHostKeyChecking=no git@github.com
-            run('git clone %(repo)s %(code_root)s' % env)
+            if not files.exists(env.code_root):
+                run('git clone %(repo)s %(code_root)s' % env)
             with cd(env.code_root):
                 run('git checkout %(branch)s' % env)
         # Install and create virtualenv
@@ -102,10 +111,12 @@ def setup_server(*roles):
             test_for_virtualenv = run('which virtualenv')
         if not test_for_virtualenv:
             sudo("pip install -U virtualenv")
-        project_run('virtualenv -p python2.7 --clear --distribute %s' % env.virtualenv_root)
-        path_file = os.path.join(env.virtualenv_root, 'lib', 'python2.6', 'site-packages', 'project.pth')
-        files.append(path_file, env.code_root, use_sudo=True)
-        sudo('chown %s:%s %s' % (env.project_user, env.project_user, path_file))
+        if not files.exists(env.virtualenv_root):
+            project_run('virtualenv -p python2.7 --clear --distribute %s' % env.virtualenv_root)
+            # TODO: Why do we need this next part?
+            path_file = os.path.join(env.virtualenv_root, 'lib', 'python2.7', 'site-packages', 'project.pth')
+            files.append(path_file, env.code_root, use_sudo=True)
+            sudo('chown %s:%s %s' % (env.project_user, env.project_user, path_file))
         update_requirements()
         upload_supervisor_app_conf(app_name=u'gunicorn')
         upload_supervisor_app_conf(app_name=u'group')

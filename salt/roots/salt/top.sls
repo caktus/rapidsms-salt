@@ -5,3 +5,4 @@ base:
         - app
         - postgresql
         - users
+        - nginx

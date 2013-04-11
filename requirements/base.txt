@@ -3,3 +3,4 @@ Django==1.5.1
 South==0.7.6
 -e git+http://github.com/rapidsms/rapidsms.git@develop#egg=rapidsms
 django-celery==3.0.17
+django-compressor==1.3
