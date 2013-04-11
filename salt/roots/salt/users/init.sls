@@ -17,12 +17,15 @@ admin:
       - group: admin
 
 {% if 'public_key' in args %}
-{{ args['public_key'] }}:
     ssh_auth:
         - present
         - user: {{ user }}
         - require:
             - user: {{ user }}
+        - names:
+{%- for key in args.get('public_key', []) %}
+            - {{ key }}
+{% endfor %}
 {% endif %}
 
 {% endfor %}
