@@ -6,3 +6,4 @@ base:
         - postgresql
         - users
         - nginx
+        - locale

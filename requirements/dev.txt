@@ -6,4 +6,7 @@ fabric==1.6.0
 ssh==1.7.14
 pycrypto==2.6.0
 Jinja2==2.6
-argyle==0.2.0
+
+# FIXME: once new function is released in argyle, pin to a released version again
+#argyle==0.2.0
+git+https://github.com/dpoirier/argyle.git@add_postgres_function#egg=argyle

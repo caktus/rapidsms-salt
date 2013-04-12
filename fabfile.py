@@ -1,10 +1,11 @@
 import ConfigParser
 import os
 import re
+from StringIO import StringIO
 
 from argyle import rabbitmq, postgres, nginx, system
 from argyle.base import upload_template
-from argyle.postgres import create_db_user, create_db
+from argyle.postgres import db_user_exists, create_db_user, db_exists, create_db, reset_cluster
 from argyle.supervisor import supervisor_command, upload_supervisor_app_conf
 from argyle.system import service_command, start_service, stop_service, restart_service
 
@@ -12,6 +13,9 @@ from fabric.api import cd, env, get, hide, local, put, require, run, settings, s
 from fabric.contrib import files, console
 
 # Directory structure
+from fabric.utils import abort, puts
+
+
 PROJECT_ROOT = os.path.dirname(__file__)
 CONF_ROOT = os.path.join(PROJECT_ROOT, 'conf')
 SERVER_ROLES = ['app', 'lb', 'db']
@@ -75,20 +79,53 @@ def know_github():
     files.append("/etc/ssh/ssh_known_hosts", KEYLINE, use_sudo=True)
 
 
+def create_server_db_user():
+    """Create our database user idempotently"""
+    if not db_user_exists(env.project):
+        create_db_user(env.project)
+
+
 @task
 def setup_server(*roles):
     """Install packages and add configurations for server given roles."""
     require('environment')
-    run('hostname;whoami')
-    # Set server locale
-    sudo('/usr/sbin/update-locale LANG=en_US.UTF-8')
-    # Teach server github's ssh server key
-    know_github()
+
     roles = list(roles)
+
+    if not roles:
+        abort("setup_server requires one or more server roles, e.g. setup_server:app or setup_server:all")
+
+    # TODO: Salt should now be doing this - verify though
+    # # Set server locale
+    # sudo('/usr/sbin/update-locale LANG=en_US.UTF-8')
+
+    # TODO: Verify that salt is now doing this
+    # # TODO: we should be able to do the next part in salt
+    # # Teach server github's ssh server key
+    # know_github()
+
     if roles == ['all', ]:
         roles = SERVER_ROLES
     if 'base' not in roles:
         roles.insert(0, 'base')
+    if 'db' in roles:
+        create_server_db_user()
+        if not db_exists(env.db):
+            err = StringIO()
+            output = create_db(env.db, env.project, warn_only=True, stdout=err)
+            if not output or not output.succeeded:
+                if 'new encoding (UTF8) is incompatible with the encoding of the template database' in err.getvalue():
+                    # Cluster has wrong encoding for us
+                    puts(err.getvalue())
+                    reset_cluster()
+                    # Our user is gone, need to create them again
+                    create_server_db_user()
+                    output = create_db(env.db, env.project)
+                elif 'database "{name}" already exists'.format(name=env.db) in err.getvalue():
+                    pass  # fine, we have the DB already
+                else:
+                    abort("Unexpected error creating database:\n%s" % err.getvalue())
+
     if 'app' in roles:
         # Create project directories and install Python requirements
         project_run('mkdir -p %(root)s' % env)
@@ -103,6 +140,8 @@ def setup_server(*roles):
             with cd(env.code_root):
                 run('git checkout %(branch)s' % env)
         # Install and create virtualenv
+        # TODO: pip is installed by salt, should not need to test for it here
+        # TODO: we should make sure we install virtualenv as well
         with settings(hide('everything'), warn_only=True):
             test_for_pip = run('which pip')
         if not test_for_pip:

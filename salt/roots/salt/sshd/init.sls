@@ -6,11 +6,27 @@ ssh:
         - watch:
             - file: ssh
             - pkg: ssh
-    file.managed:
-        - name: /etc/ssh/sshd_config
-        - source: salt://sshd/sshd_config
     require:
       - group: login 
+
+/etc/ssh/sshd_config:
+    file.managed:
+        - source: salt://sshd/sshd_config
+        - user: root
+        - mode: 644
+
+openssh-client:
+    pkg.installed
+
+
+# Github's server public key
+/etc/ssh/ssh_known_hosts:
+    file.managed:
+        - source: salt://sshd/ssh_known_hosts
+        - user: root
+        - mode: 644
+        - require:
+            - pkg: openssh-client
 
 login:
     group.present:

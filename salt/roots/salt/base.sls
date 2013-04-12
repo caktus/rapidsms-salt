@@ -6,6 +6,8 @@ base-packages:
             - wget
             - build-essential
             - git-core
+            - openssh-client
+            - openssh-server
             - subversion
             - mercurial
             - vim
