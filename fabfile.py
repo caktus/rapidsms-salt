@@ -1,11 +1,9 @@
 import ConfigParser
 import os
 import re
-from StringIO import StringIO
 
-from argyle import rabbitmq, postgres, nginx, system
+from argyle import rabbitmq, nginx, system
 from argyle.base import upload_template
-from argyle.postgres import db_user_exists, create_db_user, db_exists, create_db, reset_cluster
 from argyle.supervisor import supervisor_command, upload_supervisor_app_conf
 from argyle.system import service_command, start_service, stop_service, restart_service
 
@@ -26,6 +24,8 @@ env.shell = '/bin/bash -c'
 env.disable_known_hosts = True
 env.port = 2222
 env.forward_agent = True
+env.db = 'rapidsms'   # rapidsms database already created on server
+env.db_user = 'rapidsms'   # and user
 
 # Additional settings for argyle
 env.ARGYLE_TEMPLATE_DIRS = (
@@ -68,21 +68,8 @@ def setup_path():
     env.project_root = os.path.join(env.code_root, env.project)
     env.virtualenv_root = os.path.join(env.root, 'env')
     env.log_dir = os.path.join(env.root, 'log')
-    env.db = '%s_%s' % (env.project, env.environment)
     env.vhost = '%s_%s' % (env.project, env.environment)
     env.settings = '%(project)s.settings.%(environment)s' % env
-
-
-def know_github():
-    """Make sure github.com is in the server's ssh known_hosts file"""
-    KEYLINE = "|1|t0+3ewjYdZOrDwi/LvvAw/UiGEs=|8TzF6lRm2rdxaXDcByTBWbUIbic= ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
-    files.append("/etc/ssh/ssh_known_hosts", KEYLINE, use_sudo=True)
-
-
-def create_server_db_user():
-    """Create our database user idempotently"""
-    if not db_user_exists(env.project):
-        create_db_user(env.project)
 
 
 @task
@@ -95,37 +82,10 @@ def setup_server(*roles):
     if not roles:
         abort("setup_server requires one or more server roles, e.g. setup_server:app or setup_server:all")
 
-    # TODO: Salt should now be doing this - verify though
-    # # Set server locale
-    # sudo('/usr/sbin/update-locale LANG=en_US.UTF-8')
-
-    # TODO: Verify that salt is now doing this
-    # # TODO: we should be able to do the next part in salt
-    # # Teach server github's ssh server key
-    # know_github()
-
     if roles == ['all', ]:
         roles = SERVER_ROLES
     if 'base' not in roles:
         roles.insert(0, 'base')
-    if 'db' in roles:
-        create_server_db_user()
-        if not db_exists(env.db):
-            err = StringIO()
-            output = create_db(env.db, env.project, warn_only=True, stdout=err)
-            if not output or not output.succeeded:
-                if 'new encoding (UTF8) is incompatible with the encoding of the template database' in err.getvalue():
-                    # Cluster has wrong encoding for us
-                    puts(err.getvalue())
-                    reset_cluster()
-                    # Our user is gone, need to create them again
-                    create_server_db_user()
-                    output = create_db(env.db, env.project)
-                elif 'database "{name}" already exists'.format(name=env.db) in err.getvalue():
-                    pass  # fine, we have the DB already
-                else:
-                    abort("Unexpected error creating database:\n%s" % err.getvalue())
-
     if 'app' in roles:
         # Create project directories and install Python requirements
         project_run('mkdir -p %(root)s' % env)

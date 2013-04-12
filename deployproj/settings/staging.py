@@ -3,7 +3,7 @@ from deployproj.settings.base import *
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
-DATABASES['default']['NAME'] = 'deployproj_staging'
+DATABASES['default']['NAME'] = 'rapidsms'
 
 INSTALLED_APPS += (
     'gunicorn',
