@@ -99,17 +99,6 @@ def setup_server(*roles):
                 run('git clone %(repo)s %(code_root)s' % env)
             with cd(env.code_root):
                 run('git checkout %(branch)s' % env)
-        # Install and create virtualenv
-        # TODO: pip is installed by salt, should not need to test for it here
-        # TODO: we should make sure we install virtualenv as well
-        with settings(hide('everything'), warn_only=True):
-            test_for_pip = run('which pip')
-        if not test_for_pip:
-            sudo("easy_install -U pip")
-        with settings(hide('everything'), warn_only=True):
-            test_for_virtualenv = run('which virtualenv')
-        if not test_for_virtualenv:
-            sudo("pip install -U virtualenv")
         if not files.exists(env.virtualenv_root):
             project_run('virtualenv -p python2.7 --clear --distribute %s' % env.virtualenv_root)
             # TODO: Why do we need this next part?
