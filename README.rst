@@ -129,13 +129,18 @@ Example output::
       User vagrant
       Port 2222
 
-The `User vagrant` part is misleading as that doesn't work yet, but you
-should be able to:
+You can ssh in as any user with::
 
     ssh -p 2222 yourusername@127.0.0.1
 
-where `yourusername` is the user you added to users.sls, and 2222 and
+where `yourusername` is a user you added to users.sls, and 2222 and
 127.0.0.1 are changed to whatever vagrant reported.
+
+You can also ssh in as `vagrant` by simply doing::
+
+    vagrant ssh
+
+and vagrant has sudo, so you can do anything you need that way.
 
 
 If you change the salt files and want to update the virtual machine,
@@ -143,6 +148,11 @@ you can::
 
     ssh -p 2222 localhost sudo salt-call --local state.highstate [-l debug]
 
+but it's easier to::
+
+    vagrant reload
+
+which will both provision and reboot.
 
 You can provision a new server with the
 ``setup_server`` fab command. It takes a list of roles for this server
