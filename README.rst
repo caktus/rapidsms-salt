@@ -110,7 +110,7 @@ After installing Vagrant, install `Salty Vagrant <https://github.com/saltstack/s
     vagrant plugin install vagrant-salt
 
 Edit `salt/roots/pillar/users.sls` and add your user and ssh key, following
-the example. Later you'll be able to ssh to the vagrant system using that
+the examples. Later you'll be able to ssh to the vagrant system using that
 userid and key.
 
 Using the Vagrantfile you can start up the VM. This requires the ``precise32`` box::
@@ -158,7 +158,26 @@ You can provision a new server with the
 ``setup_server`` fab command. It takes a list of roles for this server
 ('app', 'db', 'lb') or you can say 'all'::
 
-        fab staging setup_server:all
+        fab vagrant setup_server:all
+
+Then you have to do an initial deploy.  You also use this command to
+deploy updates::
+
+        fab vagrant deploy
+
+or::
+
+        fab vagrant deploy:<branchname>
+
+The Vagrantfile arranges for port 80 in the vm to be accessible
+as port 8089 on the host system. The fabfile sets up the configuration
+to assume a hostname of `dev.example.com`. So to visit the running
+web site:
+
+1. Add `127.0.0.1 dev.example.com` to your `/etc/hosts` file (change the hostname
+   if you changed it in the fabfile).
+1. Visit `http://dev.example.com:8089/`
+
 
 *Rest of this is probably obsolete*
 
