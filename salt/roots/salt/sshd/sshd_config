@@ -1,3 +1,6 @@
+## Settings changed from the default file that vagrant would
+## otherwise have are marked with '##' comments.
+
 # Package generated configuration file
 # See the sshd_config(5) manpage for details
 
@@ -24,8 +27,11 @@ LogLevel INFO
 
 # Authentication:
 LoginGraceTime 120
+## Default: PermitRootLogin yes
 PermitRootLogin no
 StrictModes yes
+
+## Default: AllowGroups not set
 AllowGroups login
 
 RSAAuthentication yes
@@ -49,6 +55,7 @@ PermitEmptyPasswords no
 ChallengeResponseAuthentication no
 
 # Change to no to disable tunnelled clear text passwords
+## Default: PasswordAuthentication yes
 PasswordAuthentication no
 
 # Kerberos options
