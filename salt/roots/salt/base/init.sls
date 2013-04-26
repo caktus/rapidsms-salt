@@ -5,10 +5,6 @@ base-packages:
             - dpkg-dev
             - wget
             - build-essential
-            - git-core
-            - openssh-client
-            - openssh-server
-            - subversion
-            - mercurial
             - vim
+            - byobu
             - ntp

@@ -3,3 +3,4 @@ nginx:
     - installed
   service:
     - running
+    - enable: True

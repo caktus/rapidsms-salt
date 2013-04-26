@@ -19,13 +19,6 @@ app-packages:
             - zlib1g
             - zlib1g-dev
 
-memcached:
-    pkg:
-        - installed
-    service:
-        - running
-        - enable: True
-
 supervisor:
     pkg:
         - installed
@@ -33,9 +26,3 @@ supervisor:
         - running
         - enable: True
 
-postfix:
-    pkg:
-        - installed
-    service:
-        - running
-        - enable: True
