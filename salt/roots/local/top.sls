@@ -10,3 +10,4 @@ base:
         - vagrant
         - sshd
         - sshd.github
+        - project.virtualenv

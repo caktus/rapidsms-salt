@@ -1,3 +1,4 @@
 base:
   "*":
     - users.devs
+    - project
