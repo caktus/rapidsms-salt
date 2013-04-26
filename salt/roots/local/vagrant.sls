@@ -5,4 +5,4 @@
 vagrant:
     user.present:
         - name: vagrant
-        - groups: [admin]
+        - groups: [admin, login]
